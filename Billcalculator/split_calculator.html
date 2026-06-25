@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Split Expense Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f0f7fc;
+            --card-bg: #ffffff;
+            --primary-blue: #007acc;
+            --light-blue: #e1f0fa;
+            --accent-blue: #4da3ff;
+            --text-dark: #2c3e50;
+            --text-gray: #7f8c8d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .calculator-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 122, 204, 0.12);
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-blue);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* Result Section - Premium UI Card */
+        .result-box {
+            background: linear-gradient(135deg, #007acc 0%, #005999 100%);
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 122, 204, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .result-amount {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #ffffff;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        /* Inputs & Alignment Layouts */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .calc-display {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1.5rem;
+            border: 2px solid var(--light-blue);
+            border-radius: 12px;
+            text-align: right;
+            color: var(--primary-blue);
+            font-weight: 700;
+            background-color: #fafdfb;
+            transition: border-color 0.2s ease;
+        }
+
+        .calc-display:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background-color: #ffffff;
+        }
+
+        /* Scalable People Control Controls */
+        .people-controls {
+            display: flex;
+            align-items: center;
+            background: #f4f9fd;
+            border: 2px solid var(--light-blue);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .people-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--primary-blue);
+            font-size: 1.6rem;
+            font-weight: 400;
+            width: 48px;
+            height: 44px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .people-btn:hover {
+            background-color: var(--light-blue);
+        }
+
+        .people-btn:active {
+            background-color: rgba(0, 122, 204, 0.15);
+        }
+
+        #peopleCount {
+            flex: 1;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            width: 100%;
+            padding: 4px 0;
+        }
+
+        #peopleCount:focus {
+            outline: none;
+        }
+
+        /* Hide Default Spinners */
+        #peopleCount::-webkit-outer-spin-button,
+        #peopleCount::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        #peopleCount {
+            -moz-appearance: textfield;
+        }
+
+        /* Smart Responsive Keypad Grid */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            background-color: #f8fbfe;
+            border: 1px solid var(--light-blue);
+            border-radius: 12px;
+            height: 56px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.1s step-end, transform 0.1s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            background-color: var(--light-blue);
+        }
+
+        .btn.operator {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            font-size: 1.4rem;
+        }
+
+        .btn.clear {
+            background-color: #ffebeb;
+            color: #e74c3c;
+            border-color: #fdd8d8;
+        }
+
+        .btn.clear:active {
+            background-color: #fcd7d7;
+        }
+
+        .btn.equal {
+            background-color: var(--primary-blue);
+            color: white;
+            font-weight: 700;
+        }
+
+        .btn.equal:active {
+            background-color: #0066aa;
+        }
+        
+        .btn:hover:not(.equal):not(.clear):not(.operator) {
+            background-color: #f3f8fc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h2>Split Expense</h2>
+
+    <div class="result-box">
+        <div class="result-label">Each Person Pays</div>
+        <div class="result-amount" id="splitResult">₹0.00</div>
+    </div>
+
+    <div class="input-group">
+        <label for="peopleCount">Split Between (No. of People)</label>
+        <div class="people-controls">
+            <button class="people-btn" onclick="stepPeople(-1)" type="button">−</button>
+            <input type="number" id="peopleCount" value="2" min="1" max="9999" autocomplete="off">
+            <button class="people-btn" onclick="stepPeople(1)" type="button">+</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label for="billDisplay">Total Bill / Formula</label>
+        <div class="display-wrapper">
+            <input type="text" id="billDisplay" class="calc-display" value="0" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="keypad">
+        <button class="btn clear" onclick="clearDisplay()">C</button>
+        <button class="btn operator" onclick="pressKey('/')">÷</button>
+        <button class="btn operator" onclick="pressKey('*')">×</button>
+        <button class="btn operator" onclick="pressKey('-')">−</button>
+
+        <button class="btn" onclick="pressKey('7')">7</button>
+        <button class="btn" onclick="pressKey('8')">8</button>
+        <button class="btn" onclick="pressKey('9')">9</button>
+        <button class="btn operator" onclick="pressKey('+')">+</button>
+
+        <button class="btn" onclick="pressKey('4')">4</button>
+        <button class="btn" onclick="pressKey('5')">5</button>
+        <button class="btn" onclick="pressKey('6')">6</button>
+        <button class="btn equal" onclick="calculateTotal()">=</button>
+
+        <button class="btn" onclick="pressKey('1')">1</button>
+        <button class="btn" onclick="pressKey('2')">2</button>
+        <button class="btn" onclick="pressKey('3')">3</button>
+        <button class="btn" onclick="pressKey('.')">.</button>
+
+        <button class="btn" style="grid-column: span 4;" onclick="pressKey('0')">0</button>
+    </div>
+</div>
+
+<script>
+    const display = document.getElementById('billDisplay');
+    const peopleInput = document.getElementById('peopleCount');
+    const splitResult = document.getElementById('splitResult');
+
+    let isEvaluated = false;
+
+    // Direct event listener setups for continuous real-time changes
+    display.addEventListener('input', calculateSplit);
+    peopleInput.addEventListener('input', handlePeopleDirectInput);
+
+    function pressKey(key) {
+        if (display.value === '0' && !isNaN(key)) {
+            display.value = key;
+        } else {
+            if (isEvaluated && !isNaN(key)) {
+                display.value = key;
+            } else {
+                display.value += key;
+            }
+        }
+        isEvaluated = false;
+        calculateSplit();
+    }
+
+    function clearDisplay() {
+        display.value = '0';
+        calculateSplit();
+    }
+
+    // Handles the step triggers (+/- buttons) cleanly
+    function stepPeople(change) {
+        let current = parseInt(peopleInput.value) || 0;
+        current += change;
+        if (current < 1) current = 1;
+        peopleInput.value = current;
+        calculateSplit();
+    }
+
+    // Prevents crashing or blank values when typing manually inside the people box
+    function handlePeopleDirectInput() {
+        let currentString = peopleInput.value;
+        if (currentString.trim() === '') {
+            return; // Wait until they punch a number
+        }
+        let current = parseInt(currentString);
+        if (current < 1) {
+            peopleInput.value = 1;
+        }
+        calculateSplit();
+    }
+
+    function parseExpression(str) {
+        return Function(`'use strict'; return (${str})`)();
+    }
+
+    function calculateTotal() {
+        try {
+            if(display.value.trim() === "") return;
+            let result = parseExpression(display.value);
+            display.value = Number(result.toFixed(2));
+            isEvaluated = true;
+            calculateSplit();
+        } catch (e) {
+            // Edge calculation handler
+        }
+    }
+
+    function calculateSplit() {
+        let people = parseInt(peopleInput.value) || 1;
+        let expression = display.value;
+
+        if (!expression) {
+            splitResult.innerText = "₹0.00";
+            return;
+        }
+
+        try {
+            let totalBill = parseExpression(expression);
+            
+            if (isNaN(totalBill) || totalBill === Infinity || totalBill === -Infinity) {
+                splitResult.innerText = "₹0.00";
+                return;
+            }
+
+            let share = totalBill / people;
+            // Uses standard Indian Locale string formatting rules for clear reads
+            splitResult.innerText = `₹${share.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        } catch (e) {
+            // Keep matching safely while string layout expressions are incomplete
+        }
+    }
+</script>
+
+</body>
+</html>
